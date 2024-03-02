@@ -62,12 +62,12 @@ public class MarkdownConverter {
         markdownText = markdownText.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
         // Обробка курсивного тексту
         markdownText = markdownText.replaceAll("\\_(.*?)\\_", "<i>$1</i>");
+        // Обробка преформатованого тексту
+        markdownText = markdownText.replaceAll("(?s)```(.*?)```", "<pre>$1</pre>");
         // Обробка моноширинного тексту
         markdownText = markdownText.replaceAll("\\`(.*?)\\`", "<tt>$1</tt>");
-        // Обробка преформатованого тексту
-        markdownText = markdownText.replaceAll("```(.*?)```", "<pre>$1</pre>");
         // Обробка параграфів
-          markdownText = markdownText.replaceAll("(?m)\\n\\s*\\n|\\n{2,}", "</p>\n\n<p>");
+        markdownText = markdownText.replaceAll("(?m)\\n\\s*\\n|\\n{2,}", "</p>\n\n<p>");
 
         return markdownText;
     }
