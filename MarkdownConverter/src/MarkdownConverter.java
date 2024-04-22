@@ -1,33 +1,47 @@
+package org.example;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 public class MarkdownConverter {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("Usage: MarkdownConverter <input_file> [--out <output_file>]");
+            System.err.println("Usage: MarkdownConverter <input_file> [--out <output_file>] [--format <output_format>]");
             System.exit(1);
         }
 
-        String inputFile = args[0];
+        String inputFile = null;
         String outputFile = null;
+        String outputFormat = null;
 
-        // Перевірка, чи вказано вихідний файл
-        if (args.length > 2 && args[1].equals("--out")) {
-            outputFile = args[2];
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("--out") && i + 1 < args.length) {
+                outputFile = args[i + 1];
+                i++;
+            } else if (args[i].equals("--format") && i + 1 < args.length) {
+                outputFormat = args[i + 1];
+                i++;
+            } else {
+                inputFile = args[i];
+            }
+        }
+
+        if (inputFile == null) {
+            System.err.println("Input file is missing.");
+            System.exit(1);
         }
 
         try {
             String markdownText = readMarkdownFile(inputFile);
-            String htmlText = convertToHtml(markdownText);
+            String outputText = convertToFormat(markdownText, outputFormat);
             if (outputFile != null) {
-                writeHtmlToFile(htmlText, outputFile);
+                writeToFile(outputText, outputFile, outputFormat);
             } else {
-                System.out.println(htmlText);
+                if ("ansi".equalsIgnoreCase(outputFormat)) {
+                    printFormattedText(outputText, true);
+                } else {
+                    System.out.println(outputText);
+                }
             }
         } catch (IOException e) {
             System.err.println("Error reading or writing file: " + e.getMessage());
@@ -49,27 +63,51 @@ public class MarkdownConverter {
         return sb.toString();
     }
 
-    private static void writeHtmlToFile(String htmlText, String outputFile) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            writer.write(htmlText);
+    private static void writeToFile(String outputText, String outputFile, String outputFormat) throws IOException {
+        if ("ansi".equalsIgnoreCase(outputFormat)) {
+            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)))) {
+                printFormattedText(outputText, false, writer);
+            }
+        } else {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+                writer.write(outputText);
+            }
         }
     }
 
-    private static String convertToHtml(String markdownText) throws InvalidMarkdownException {
-
-
-        // Обробка жирного тексту
-        markdownText = markdownText.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
-        // Обробка курсивного тексту
-        markdownText = markdownText.replaceAll("\\_(.*?)\\_", "<i>$1</i>");
-        // Обробка преформатованого тексту
-        markdownText = markdownText.replaceAll("(?s)```(.*?)```", "<pre>$1</pre>");
-        // Обробка моноширинного тексту
-        markdownText = markdownText.replaceAll("\\`(.*?)\\`", "<tt>$1</tt>");
-        // Обробка параграфів
-        markdownText = markdownText.replaceAll("(?m)\\n\\s*\\n|\\n{2,}", "</p>\n\n<p>");
-
+    private static String convertToFormat(String markdownText, String outputFormat) throws InvalidMarkdownException {
+        if ("ansi".equalsIgnoreCase(outputFormat)) {
+            markdownText = convertToANSI(markdownText);
+        } else if ("html".equalsIgnoreCase(outputFormat)) {
+            markdownText = convertToHtml(markdownText);
+        }
         return markdownText;
+    }
+
+    public static String convertToHtml(String markdownText) throws InvalidMarkdownException {
+        markdownText = markdownText.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
+        markdownText = markdownText.replaceAll("\\_(.*?)\\_", "<i>$1</i>");
+        markdownText = markdownText.replaceAll("(?s)```(.*?)```", "<pre>$1</pre>");
+        markdownText = markdownText.replaceAll("\\`(.*?)\\`", "<tt>$1</tt>");
+        markdownText = markdownText.replaceAll("(?m)\\n\\s*\\n|\\n{2,}", "</p>\n\n<p>");
+        return markdownText;
+    }
+
+    public static String convertToANSI(String markdownText) throws InvalidMarkdownException {
+        markdownText = markdownText.replaceAll("\\*\\*(.*?)\\*\\*", "\u001B[1m$1\u001B[22m");
+        markdownText = markdownText.replaceAll("\\_(.*?)\\_", "\u001B[3m$1\u001B[23m");
+        markdownText = markdownText.replaceAll("(?s)```(.*?)```", "\u001B[7m$1\u001B[27m");
+        markdownText = markdownText.replaceAll("\\`(.*?)\\`", "\u001B[7m$1\u001B[27m");
+        return markdownText;
+    }
+
+    private static void printFormattedText(String outputText, boolean inverted) {
+        printFormattedText(outputText, inverted, new PrintWriter(System.out));
+    }
+
+    private static void printFormattedText(String outputText, boolean inverted, PrintWriter writer) {
+        writer.println(outputText);
+        writer.flush();
     }
 
     static class InvalidMarkdownException extends Exception {
