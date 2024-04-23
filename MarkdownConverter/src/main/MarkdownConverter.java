@@ -1,4 +1,4 @@
-package org.example;
+package main;
 
 import java.io.*;
 
@@ -110,7 +110,7 @@ public class MarkdownConverter {
         writer.flush();
     }
 
-    static class InvalidMarkdownException extends Exception {
+    public static class InvalidMarkdownException extends Exception {
         public InvalidMarkdownException(String message) {
             super(message);
         }
