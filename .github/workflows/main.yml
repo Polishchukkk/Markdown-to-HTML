@@ -21,10 +21,11 @@ jobs:
 
     - name: Build with Maven
       run: |
-        cd Markdown-to-HTML/MarkdownConverter
+        cd MarkdownConverter
         mvn -B package
 
     - name: Run tests
       run: |
-        cd Markdown-to-HTML/MarkdownConverter
+        cd MarkdownConverter
         mvn -B test
+
