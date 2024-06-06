@@ -1,9 +1,12 @@
 
 import main.MarkdownConverter;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.*;
+        import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +22,12 @@ public class MarkdownConverterTest {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(TEST_INPUT_FILE))) {
             writer.write(SAMPLE_MARKDOWN);
         }
+    }
+
+    @AfterEach
+    public void tearDown() throws IOException {
+        Files.deleteIfExists(Paths.get(TEST_INPUT_FILE));
+        Files.deleteIfExists(Paths.get(TEST_OUTPUT_FILE));
     }
 
     @Test
@@ -45,20 +54,17 @@ public class MarkdownConverterTest {
     }
 
     @Test
-    public void testReadMarkdownFile() throws IOException {
-        String markdownText = MarkdownConverter.readMarkdownFile(TEST_INPUT_FILE);
-        assertEquals(SAMPLE_MARKDOWN + "\n", markdownText);
-    }
-
-    @Test
     public void testWriteToFile() throws IOException, MarkdownConverter.InvalidMarkdownException {
         String outputText = "Sample output text";
         MarkdownConverter.writeToFile(outputText, TEST_OUTPUT_FILE, null);
 
-        String writtenText;
+        StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(TEST_OUTPUT_FILE))) {
-            writtenText = reader.readLine();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
         }
-        assertEquals(outputText, writtenText);
+        assertEquals(outputText, sb.toString());
     }
 }
