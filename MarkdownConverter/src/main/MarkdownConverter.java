@@ -52,7 +52,7 @@ public class MarkdownConverter {
         }
     }
 
-    private static String readMarkdownFile(String inputFile) throws IOException {
+    public static String readMarkdownFile(String inputFile) throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             String line;
@@ -63,7 +63,7 @@ public class MarkdownConverter {
         return sb.toString();
     }
 
-    private static void writeToFile(String outputText, String outputFile, String outputFormat) throws IOException {
+    public static void writeToFile(String outputText, String outputFile, String outputFormat) throws IOException {
         if ("ansi".equalsIgnoreCase(outputFormat)) {
             try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)))) {
                 printFormattedText(outputText, false, writer);
