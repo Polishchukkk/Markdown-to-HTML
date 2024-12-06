@@ -24,6 +24,7 @@ jobs:
         cd MarkdownConverter
         mvn -B package
 
+
     - name: Run tests
       run: |
         cd MarkdownConverter
